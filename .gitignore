@@ -1,0 +1,10 @@
+data/
+outputs/checkpoints/*.pt
+outputs/checkpoints/*.pth
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+kaggle.json
+.claude/
