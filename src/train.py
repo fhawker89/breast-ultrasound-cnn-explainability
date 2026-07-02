@@ -11,9 +11,10 @@ from tqdm import tqdm
 
 from dataset import BUSIDataset, CLASSES, collect_samples, set_seed, stratified_split
 
-RAW_DIR = os.path.join("data", "raw", "Dataset_BUSI_with_GT")
-CHECKPOINT_PATH = os.path.join("outputs", "checkpoints", "resnet18_busi.pt")
-METRICS_PATH = os.path.join("outputs", "metrics.json")
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RAW_DIR = os.path.join(ROOT_DIR, "data", "raw", "Dataset_BUSI_with_GT")
+CHECKPOINT_PATH = os.path.join(ROOT_DIR, "outputs", "checkpoints", "resnet18_busi.pt")
+METRICS_PATH = os.path.join(ROOT_DIR, "outputs", "metrics.json")
 EPOCHS = 15
 BATCH_SIZE = 16
 LR = 1e-4

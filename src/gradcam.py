@@ -18,9 +18,9 @@ from dataset import (
     set_seed,
     stratified_split,
 )
-from train import RAW_DIR, CHECKPOINT_PATH, DEVICE, build_model
+from train import RAW_DIR, CHECKPOINT_PATH, DEVICE, ROOT_DIR, build_model
 
-FIGURES_DIR = os.path.join("outputs", "figures")
+FIGURES_DIR = os.path.join(ROOT_DIR, "outputs", "figures")
 SAMPLES_PER_CLASS = 3
 
 
