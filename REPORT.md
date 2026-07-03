@@ -40,13 +40,9 @@ Test accuracy: **88.9%** (104/117 correct).
 | Benign | 0.86 | 0.95 | 0.91 | 66 |
 | Malignant | 0.96 | 0.84 | 0.90 | 31 |
 
-Confusion matrix (rows = true, columns = predicted; order normal/benign/malignant):
-
-```
-[15,  5,  0]
-[ 2, 63,  1]
-[ 0,  5, 26]
-```
+*(Precision: of everything the model called this class, what fraction actually was.
+Recall: of everything that actually was this class, what fraction the model caught.
+F1 is the balance of the two. Support is how many true test examples of that class there were.)*
 
 Malignant precision is highest of the three classes (0.96), and critically, **no malignant
 case was misclassified as normal** — the model's errors on malignant cases were confusions
@@ -54,32 +50,88 @@ with benign, the clinically safer failure mode. Most misclassifications involve 
 being read as benign, plausibly because "normal" tissue can still contain benign-looking
 structures not marked as lesions.
 
-Grad-CAM visualisations (see `outputs/figures/`) show the model's attention concentrated
-directly over the annotated lesion in the large majority of correctly classified benign and
-malignant cases, rather than on surrounding tissue or imaging artefacts (probe markers, text
-overlays) — evidence that the model is learning the lesion itself as the discriminative
-feature, not a confound.
+### Confusion matrix
 
-**Normalised confusion matrix** (`outputs/figures/baseline_confusion_matrix_normalized.png`)
-expresses the same matrix as row fractions rather than raw counts, which matters given how
-imbalanced the classes are (133 normal vs. 437 benign vs. 210 malignant) — raw counts alone
-make the minority classes look artificially small. Per class: normal 0.75, benign 0.95,
-malignant 0.84 correctly classified.
+A confusion matrix is just a table of "what the model predicted" vs. "what was actually true" —
+the diagonal is correct predictions, everything off the diagonal is a specific kind of mistake
+(e.g. row "malignant", column "benign" = a malignant case the model called benign).
 
-**ROC curves** (`outputs/figures/baseline_roc_curves.png`), one-vs-rest per class, all land
-well above chance: normal AUC=0.990, benign AUC=0.985, malignant AUC=0.994. This is a genuinely
-strong result and a useful complement to the accuracy figure above — it shows the model
-separates the classes well in terms of *ranking* predictions by confidence, even where the
-default 0.5 decision threshold produces some misclassifications. In other words, several of the
-errors above are closer to a threshold-calibration issue than a fundamental inability to tell
-the classes apart.
+![Confusion matrix](outputs/figures/baseline_confusion_matrix.png)
 
-**Misclassified examples** (`outputs/figures/baseline_misclassified.png`) reveal a clean,
-consistent failure pattern: essentially every error in the gallery is a case being over-called
-"benign" — normal images read as benign, and the two malignant errors also misread as benign
-rather than normal. There's no case in this sample of being confidently wrong in the
-clinically dangerous direction (missing a real finding); the model's uncertainty consistently
-resolves toward the middle class rather than either extreme.
+Each cell shows the raw count and the row percentage. Rows are true classes, columns are
+predicted classes.
+
+![Normalised confusion matrix](outputs/figures/baseline_confusion_matrix_normalized.png)
+
+This second version shows *only* the row percentages (0–1), which matters because the classes
+are imbalanced (133 normal vs. 437 benign vs. 210 malignant) — in the raw-count version, the
+minority classes visually look "smaller" even when the model handles them just as well
+proportionally. Per class: normal 0.75, benign 0.95, malignant 0.84 correctly classified.
+
+### Per-class precision / recall / F1, visualised
+
+![Per-class metrics](outputs/figures/baseline_class_metrics.png)
+
+The same numbers as the table above, as a bar chart — makes it easy to see at a glance that
+malignant precision (how much to trust a "malignant" call) is the strongest of the three, while
+normal recall (catching every actual normal case) is the weakest.
+
+### ROC curves
+
+![ROC curves](outputs/figures/baseline_roc_curves.png)
+
+A ROC curve asks: as you slide the model's decision threshold from "flag almost nothing" to
+"flag almost everything," how does the trade-off between catching true cases (true positive
+rate) and false alarms (false positive rate) move? A perfect classifier hugs the top-left
+corner; a random guess follows the diagonal ("chance" line). AUC (area under that curve)
+summarises it as one number, where 1.0 is perfect and 0.5 is random.
+
+All three classes land well above chance: normal AUC=0.990, benign AUC=0.985,
+malignant AUC=0.994. This is a genuinely strong result and a useful complement to the accuracy
+figure above — it shows the model separates the classes well in terms of *ranking* predictions
+by confidence, even where the default 0.5 decision threshold produces some misclassifications.
+In other words, several of the errors above are closer to a threshold-calibration issue than a
+fundamental inability to tell the classes apart.
+
+### Training curves
+
+![Loss and accuracy vs epoch](outputs/figures/baseline_loss_accuracy.png)
+
+This shows how training and validation loss/accuracy moved over the 15 training epochs.
+Training and validation tracking each other closely (rather than training loss dropping while
+validation loss rises) is the standard visual check for overfitting — here they move together
+reasonably well, consistent with the frozen-backbone approach being appropriately conservative
+for a dataset this size.
+
+### Misclassified examples
+
+![Misclassified examples](outputs/figures/baseline_misclassified.png)
+
+Actual test images the model got wrong, with the true label, the model's (incorrect)
+prediction, and its confidence in that wrong prediction. This reveals a clean, consistent
+failure pattern: essentially every error here is a case being over-called "benign" — normal
+images read as benign, and the two malignant errors also misread as benign rather than normal.
+There's no case of being confidently wrong in the clinically dangerous direction (missing a
+real finding); the model's uncertainty consistently resolves toward the middle class rather
+than either extreme.
+
+### Grad-CAM: does the model look at the right place?
+
+Grad-CAM produces a heatmap of which pixels most influenced the model's decision. On its own
+that's just a picture — the useful step is comparing it against the radiologist's own drawn
+lesion outline (the "ground-truth mask") for the same image, to check the model is keying off
+the actual lesion rather than something coincidental (a probe marker, image text, unrelated
+tissue).
+
+![Grad-CAM: benign](outputs/figures/gradcam_benign.png)
+![Grad-CAM: malignant](outputs/figures/gradcam_malignant.png)
+![Grad-CAM: normal](outputs/figures/gradcam_normal.png)
+
+Each row is one test image: the plain ultrasound image, the same image with the ground-truth
+lesion mask overlaid in red, and the Grad-CAM heatmap (red/yellow = high influence on the
+prediction, blue = low). Across benign and malignant examples, the heatmap concentrates
+directly over the annotated lesion in the large majority of cases — evidence the model learned
+the lesion itself as the discriminative feature, not a confound.
 
 ## Discussion
 
