@@ -185,6 +185,10 @@ earlier layers have finer spatial resolution but weaker class-specific informati
 the strongest class information but the coarsest resolution. Grad-CAM is also influenced by each
 neuron's receptive field at that depth, which by `layer4` covers a large fraction of the image,
 so the heatmap reflects contextual tissue around the lesion, not only the lesion's exact pixels.
+This is a widely documented limitation, not specific to this project — it is the stated
+motivation for follow-up work such as Grad-CAM++ (Chattopadhyay et al., 2018), which notes that
+"the feature map of the last convolutional layer has a smaller resolution compared to the input
+image, so Grad-CAM maps do not have fine-grained details."
 A natural follow-up (noted in Future Work) would be a quantitative localisation metric (IoU
 between a thresholded CAM and the mask) to replace this qualitative, by-eye assessment, and to
 compare against sharper-localisation alternatives (e.g. Grad-CAM++, Score-CAM, or CAMs computed
