@@ -165,9 +165,30 @@ tissue).
 
 Each row is one test image: the plain ultrasound image, the same image with the ground-truth
 lesion mask overlaid in red, and the Grad-CAM heatmap (red/yellow = high influence on the
-prediction, blue = low). Across benign and malignant examples, the heatmap concentrates
-directly over the annotated lesion in the large majority of cases — evidence the model learned
-the lesion itself as the discriminative feature, not a confound.
+prediction, blue = low). Across benign and malignant examples, the heatmap reliably lands in
+the *general vicinity* of the annotated lesion — it is never concentrated on completely
+unrelated tissue, probe markers, or image text — but on closer inspection, the hottest part of
+the heatmap is frequently offset from the lesion rather than centred precisely on it, and the
+highlighted region is consistently larger than the lesion itself, spilling into surrounding
+tissue. So the honest characterisation is: the model is looking at broadly the right area, but
+not drawing a precise boundary around the lesion the way the ground-truth mask does.
+
+**Why this happens.** This is a known, structural limitation of Grad-CAM rather than a sign the
+model has learned something wrong. Grad-CAM is computed from the *last* convolutional block
+(`layer4`), which is where the network's class-relevant information is strongest — but by that
+point in ResNet18, the image has been downsampled by a factor of 32 in total, so `layer4`'s
+output is only a 7×7 grid of activations (for a 224×224 input). That 7×7 map has to be
+upsampled back to the full image size to produce the heatmap, meaning each "pixel" of real
+precision in the raw Grad-CAM output actually corresponds to a 32×32 block of the original
+image — well larger than many of the lesions themselves. There is an inherent trade-off here:
+earlier layers have finer spatial resolution but weaker class-specific information; `layer4` has
+the strongest class information but the coarsest resolution. Grad-CAM is also influenced by each
+neuron's receptive field at that depth, which by `layer4` covers a large fraction of the image,
+so the heatmap reflects contextual tissue around the lesion, not only the lesion's exact pixels.
+A natural follow-up (noted in Future Work) would be a quantitative localisation metric (IoU
+between a thresholded CAM and the mask) to replace this qualitative, by-eye assessment, and to
+compare against sharper-localisation alternatives (e.g. Grad-CAM++, Score-CAM, or CAMs computed
+from an earlier, higher-resolution layer at the cost of weaker class-specificity).
 
 ## Discussion
 
