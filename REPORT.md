@@ -60,6 +60,27 @@ malignant cases, rather than on surrounding tissue or imaging artefacts (probe m
 overlays) — evidence that the model is learning the lesion itself as the discriminative
 feature, not a confound.
 
+**Normalised confusion matrix** (`outputs/figures/baseline_confusion_matrix_normalized.png`)
+expresses the same matrix as row fractions rather than raw counts, which matters given how
+imbalanced the classes are (133 normal vs. 437 benign vs. 210 malignant) — raw counts alone
+make the minority classes look artificially small. Per class: normal 0.75, benign 0.95,
+malignant 0.84 correctly classified.
+
+**ROC curves** (`outputs/figures/baseline_roc_curves.png`), one-vs-rest per class, all land
+well above chance: normal AUC=0.990, benign AUC=0.985, malignant AUC=0.994. This is a genuinely
+strong result and a useful complement to the accuracy figure above — it shows the model
+separates the classes well in terms of *ranking* predictions by confidence, even where the
+default 0.5 decision threshold produces some misclassifications. In other words, several of the
+errors above are closer to a threshold-calibration issue than a fundamental inability to tell
+the classes apart.
+
+**Misclassified examples** (`outputs/figures/baseline_misclassified.png`) reveal a clean,
+consistent failure pattern: essentially every error in the gallery is a case being over-called
+"benign" — normal images read as benign, and the two malignant errors also misread as benign
+rather than normal. There's no case in this sample of being confidently wrong in the
+clinically dangerous direction (missing a real finding); the model's uncertainty consistently
+resolves toward the middle class rather than either extreme.
+
 ## Discussion
 
 At under 800 training images, a lightweight transfer-learning approach (freezing most of a
