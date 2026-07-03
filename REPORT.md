@@ -97,11 +97,17 @@ fundamental inability to tell the classes apart.
 
 ![Loss and accuracy vs epoch](outputs/figures/baseline_loss_accuracy.png)
 
-This shows how training and validation loss/accuracy moved over the 15 training epochs.
-Training and validation tracking each other closely (rather than training loss dropping while
-validation loss rises) is the standard visual check for overfitting — here they move together
-reasonably well, consistent with the frozen-backbone approach being appropriately conservative
-for a dataset this size.
+This shows how training and validation loss/accuracy moved over the 15 training epochs. There
+is a real, visible gap by the final epoch: training loss falls to about 0.11 and training
+accuracy to about 96%, while validation loss plateaus around 0.42-0.5 and validation accuracy
+around 85-87%, fluctuating noticeably epoch to epoch rather than improving smoothly. That gap is
+a mild sign of overfitting to the training set, and the noise in the validation curve is
+consistent with how small the validation split is (118 images) — a handful of hard or easy
+images swap prediction can move the epoch's validation accuracy several points either way. This
+is exactly why the *best-validation-accuracy* checkpoint was kept for testing rather than
+whatever the model looked like after the final epoch, and why the frozen-backbone (rather than
+fully fine-tuned) approach was the appropriate starting point for a dataset this size — even with
+that more conservative choice, some overfitting is still visible.
 
 ### Misclassified examples
 

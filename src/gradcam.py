@@ -147,7 +147,7 @@ def main():
         fig.suptitle(f"Class: {class_name}")
         fig.tight_layout()
         out_path = os.path.join(FIGURES_DIR, f"gradcam_{class_name}.png")
-        fig.savefig(out_path, dpi=150)
+        fig.savefig(out_path, dpi=100, bbox_inches="tight")
         plt.close(fig)  # free the figure's memory before starting the next one
         print(f"Saved {out_path}")
 

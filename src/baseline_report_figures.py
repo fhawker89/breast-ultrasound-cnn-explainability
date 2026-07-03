@@ -75,7 +75,7 @@ def plot_misclassified_gallery(test_samples, labels, preds, probs, out_path, max
 
     fig.suptitle("Misclassified test examples")
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=100, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {out_path}")
 

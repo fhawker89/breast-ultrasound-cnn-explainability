@@ -8,7 +8,7 @@ def plot_confusion_matrix(cm, classes, title, out_path):
     row_sums = cm.sum(axis=1, keepdims=True)
     cm_pct = np.divide(cm, row_sums, out=np.zeros_like(cm, dtype=float), where=row_sums != 0)
 
-    fig, ax = plt.subplots(figsize=(5, 4.5))
+    fig, ax = plt.subplots(figsize=(6.5, 4.8))
     im = ax.imshow(cm_pct, cmap="Blues", vmin=0, vmax=1)
     ax.set_xticks(range(len(classes)))
     ax.set_yticks(range(len(classes)))
@@ -25,7 +25,7 @@ def plot_confusion_matrix(cm, classes, title, out_path):
 
     fig.colorbar(im, ax=ax, label="row-normalised fraction")
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {out_path}")
 
@@ -40,7 +40,7 @@ def plot_normalized_confusion_matrix(cm, classes, title, out_path):
     row_sums = cm.sum(axis=1, keepdims=True)
     cm_norm = np.divide(cm, row_sums, out=np.zeros_like(cm, dtype=float), where=row_sums != 0)
 
-    fig, ax = plt.subplots(figsize=(5, 4.5))
+    fig, ax = plt.subplots(figsize=(6.5, 4.8))
     im = ax.imshow(cm_norm, cmap="Blues", vmin=0, vmax=1)
     ax.set_xticks(range(len(classes)))
     ax.set_yticks(range(len(classes)))
@@ -57,7 +57,7 @@ def plot_normalized_confusion_matrix(cm, classes, title, out_path):
 
     fig.colorbar(im, ax=ax, label="fraction of true class")
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {out_path}")
 
@@ -81,7 +81,7 @@ def plot_class_metrics_bar(report, classes, title, out_path):
     ax.set_title(title)
     ax.legend()
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {out_path}")
 
@@ -105,7 +105,7 @@ def plot_roc_curves(y_true, y_probs, classes, title, out_path):
     ax.set_title(title)
     ax.legend(loc="lower right")
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {out_path}")
 
@@ -130,6 +130,6 @@ def plot_loss_accuracy(history, title, out_path):
 
     fig.suptitle(title)
     fig.tight_layout()
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {out_path}")
