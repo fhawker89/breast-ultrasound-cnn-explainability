@@ -8,3 +8,5 @@ venv/
 .ipynb_checkpoints/
 kaggle.json
 .claude/
+INTERVIEW_PREP.md
+PRE_INTERVIEW_PREP.md
