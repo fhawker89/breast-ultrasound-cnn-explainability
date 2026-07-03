@@ -1,0 +1,8 @@
+{
+  "method": "test-time dropout (dropout inserted post-hoc into a model trained without it)",
+  "dropout_p": 0.3,
+  "mc_samples": 30,
+  "mc_dropout_mean_accuracy": 0.8974358974358975,
+  "mean_entropy_correct": 0.1704508544106585,
+  "mean_entropy_incorrect": 0.7116913312170542
+}

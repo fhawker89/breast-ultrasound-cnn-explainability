@@ -115,6 +115,42 @@ There's no case of being confidently wrong in the clinically dangerous direction
 real finding); the model's uncertainty consistently resolves toward the middle class rather
 than either extreme.
 
+### Uncertainty: does the model know when it doesn't know?
+
+Accuracy alone doesn't tell you whether a model's mistakes are at least
+*flagged* by low confidence, or whether it's just as confident when wrong as
+when right. Using **MC-Dropout** (running many stochastic forward passes
+with dropout active and looking at how much the predictions vary) gives a
+per-image uncertainty score alongside the prediction itself, without
+changing what the model outputs on average.
+
+Because the trained baseline model didn't originally include a dropout
+layer, this uses a fast **test-time dropout** variant: a dropout layer is
+wrapped around the *same already-trained* classification weights (dropout
+has no learnable parameters of its own, so nothing needed retraining — this
+ran as a single inference pass, seconds not minutes). This is a quicker,
+more approximate cousin of "proper" MC-Dropout, where the network is trained
+from the start with dropout active so its weights adapt to be robust to it
+— worth being upfront about that distinction rather than overstating rigor.
+
+![MC-Dropout uncertainty vs correctness](outputs/figures/baseline_mc_dropout_uncertainty.png)
+
+For each test image, the model was run 30 times with a different random
+dropout pattern each time, giving 30 slightly different predictions per
+image. **Predictive entropy** (how spread out the resulting average
+probability is across the three classes — 0 if every pass agreed on one
+class, higher if they disagreed) is the uncertainty score plotted here.
+
+The result: mean entropy on **correct** predictions was **0.17**, vs. **0.71**
+on **incorrect** predictions — over 4x higher, with almost no overlap between
+the two groups. In plain terms: when this model is wrong, it also tends to
+be visibly less sure of itself, which is exactly the property you'd want to
+turn this into a practical triage signal ("route high-uncertainty cases to
+a human reviewer") rather than trusting every prediction equally. (Averaging
+predictions over the 30 stochastic passes gave 89.7% accuracy — consistent
+with the original 88.9%, confirming the dropout noise isn't distorting the
+model's actual behaviour.)
+
 ### Grad-CAM: does the model look at the right place?
 
 Grad-CAM produces a heatmap of which pixels most influenced the model's decision. On its own
