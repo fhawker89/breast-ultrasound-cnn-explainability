@@ -191,3 +191,36 @@ a clinical-adjacent setting, though it does not by itself establish clinical val
 - **Grad-CAM overlap was assessed qualitatively**, not with a quantitative localisation metric
   (e.g. IoU between the CAM's thresholded region and the ground-truth mask), which would be a
   natural addition for a more rigorous evaluation.
+
+## Future Work
+
+**PDE-based segmentation as a complementary, uncertainty-aware alternative to Grad-CAM.**
+This project's explainability approach (Grad-CAM) shows *which pixels* influenced a prediction,
+but says nothing about how confident that region's boundary actually is. Classical PDE and
+variational segmentation methods (level-set/Chan-Vese, active contours, total-variation
+regularisation — the kind of approach explored by researchers such as Jonas Latz, whose work
+spans exactly this intersection of PDEs, segmentation, and Bayesian uncertainty quantification)
+solve for a lesion boundary directly, and — when framed as a Bayesian inverse problem — can
+produce a *formal credible region* around that boundary, not just a point estimate. That is a
+genuinely different kind of uncertainty to the MC-Dropout classification uncertainty computed
+above: spatial ("how confident is the model in exactly where the lesion edge is") rather than
+categorical ("how confident is the model in which class this is"). The two are complementary,
+not competing.
+
+This would not be expected to beat the CNN on raw classification accuracy on its own — historically,
+classical segmentation-plus-handcrafted-feature pipelines were broadly superseded by end-to-end
+deep learning for exactly this kind of task, since learned features tend to capture subtler
+discriminative texture than hand-designed geometric descriptors. The value case is different:
+interpretability and clinical auditability. A segmentation boundary and its uncertainty band are
+directly inspectable by a radiologist in a way a CNN's internal activations are not.
+
+**Fractal dimension as an interpretable feature.** There is an established body of evidence that
+malignant tissue exhibits measurably different fractal characteristics to benign tissue — in
+tumour boundary irregularity, texture, and (in histology) vascular branching patterns — plausibly
+because malignant growth tends to produce more irregular, self-similar structure than benign
+growth. Computing the fractal dimension (e.g. via box-counting) of each lesion's ground-truth
+mask boundary in this dataset, and checking whether it differs systematically between benign and
+malignant cases, would be a fast, no-retraining addition using data already collected for this
+project. Unlike a learned CNN feature, a fractal dimension is a single, human-interpretable
+number — a natural complement to Grad-CAM for building trust with a clinical end user, even if it
+is not expected to outperform the CNN's raw accuracy on its own.
