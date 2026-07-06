@@ -225,6 +225,27 @@ a clinical-adjacent setting, though it does not by itself establish clinical val
 
 ## Future Work
 
+**A two-stage cascade to directly target the worst error type, not just overall accuracy.**
+A single 3-way classifier has no concept that "a malignant or benign case predicted as
+normal" is a categorically worse mistake than confusing benign with malignant — it just
+optimises one accuracy number and treats every error the same. A cascade design addresses
+this directly: a first, binary normal-vs-abnormal stage, with its decision threshold
+deliberately tuned on a held-out validation split to catch every abnormal case (even at the
+cost of some normal images being flagged for a second look), followed by a second
+benign-vs-malignant stage that only ever runs on cases the first stage flagged. This mirrors
+how real screening pipelines are designed — a sensitive triage stage, then a specialist stage —
+rather than hoping the safety property falls out of a single global accuracy metric.
+
+This was in fact attempted, not just planned: an early implementation selected the
+triage threshold as the strict minimum abnormal-class probability seen in validation, which
+turned out to be a fragile statistic — a single noisy validation example collapsed the
+threshold to a value so low the model flagged almost every image as abnormal, which tanked
+overall accuracy without reliably fixing the error it was meant to prevent. The fix (a low
+percentile of validation scores instead of the strict minimum) was identified but not
+re-validated to completion within the time available, so no cascade result is reported here —
+the honest number to cite remains the single-model 88.9% above. Included as future work
+because the diagnosis, not just the idea, is what would make finishing it worthwhile.
+
 **PDE-based segmentation as a complementary, uncertainty-aware alternative to Grad-CAM.**
 This project's explainability approach (Grad-CAM) shows *which pixels* influenced a prediction,
 but says nothing about how confident that region's boundary actually is. Classical PDE and
@@ -245,6 +266,13 @@ discriminative texture than hand-designed geometric descriptors. The value case 
 interpretability and clinical auditability. A segmentation boundary and its uncertainty band are
 directly inspectable by a radiologist in a way a CNN's internal activations are not.
 
+*Update: this was followed up as a separate project —*
+[*breast-ultrasound-pde-segmentation*](https://github.com/fhawker89/breast-ultrasound-pde-segmentation)
+*— using Chan-Vese seeded from this model's own Grad-CAM output. The honest headline: the
+segmentation itself underperformed (mean Dice 0.25, or 0.43 even with perfect localisation
+handed to it), for a specific, diagnosable reason described in that repo's report. The
+motivating hypothesis fared much better — see the fractal dimension note below.*
+
 **Fractal dimension as an interpretable feature.** There is an established body of evidence that
 malignant tissue exhibits measurably different fractal characteristics to benign tissue — in
 tumour boundary irregularity, texture, and (in histology) vascular branching patterns — plausibly
@@ -255,3 +283,12 @@ malignant cases, would be a fast, no-retraining addition using data already coll
 project. Unlike a learned CNN feature, a fractal dimension is a single, human-interpretable
 number — a natural complement to Grad-CAM for building trust with a clinical end user, even if it
 is not expected to outperform the CNN's raw accuracy on its own.
+
+*Update: this was tested in the same follow-up project above, and it's the actual positive
+result of that experiment. Computed on the ground-truth boundary, both fractal dimension and
+circularity separate benign from malignant with real statistical significance (p=0.004 and
+p<0.0001), in the direction the "spiculated margins" literature predicts. Computed on the
+project's own (imprecise) automatic segmentation instead, the fractal dimension signal survives
+but weakens (p=0.039), and the circularity signal disappears entirely (p=0.41) — evidence that
+the underlying hypothesis is sound even though the automatic boundary-extraction step wasn't
+precise enough to reliably capture it.*
