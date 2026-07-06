@@ -256,12 +256,6 @@ discriminative texture than hand-designed geometric descriptors. The value case 
 interpretability and clinical auditability. A segmentation boundary and its uncertainty band are
 directly inspectable by a radiologist in a way a CNN's internal activations are not.
 
-*Update: this was followed up as a separate project -*
-[*breast-ultrasound-pde-segmentation*](https://github.com/fhawker89/breast-ultrasound-pde-segmentation)
-*- using Chan-Vese seeded from this model's own Grad-CAM output. The honest headline: the
-segmentation itself underperformed (mean Dice 0.25, or 0.43 even with perfect localisation
-handed to it), for a specific, diagnosable reason described in that repo's report. The
-motivating hypothesis fared much better - see the fractal dimension note below.*
 
 **Fractal dimension as an interpretable feature.** There is an established body of evidence that
 malignant tissue exhibits measurably different fractal characteristics to benign tissue - in
@@ -274,11 +268,3 @@ project. Unlike a learned CNN feature, a fractal dimension is a single, human-in
 number - a natural complement to Grad-CAM for building trust with a clinical end user, even if it
 is not expected to outperform the CNN's raw accuracy on its own.
 
-*Update: this was tested in the same follow-up project above, and it's the actual positive
-result of that experiment. Computed on the ground-truth boundary, both fractal dimension and
-circularity separate benign from malignant with real statistical significance (p=0.004 and
-p<0.0001), in the direction the "spiculated margins" literature predicts. Computed on the
-project's own (imprecise) automatic segmentation instead, the fractal dimension signal survives
-but weakens (p=0.039), and the circularity signal disappears entirely (p=0.41) - evidence that
-the underlying hypothesis is sound even though the automatic boundary-extraction step wasn't
-precise enough to reliably capture it.*
