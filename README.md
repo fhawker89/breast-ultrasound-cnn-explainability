@@ -6,7 +6,7 @@ segmentation masks.
 
 ## Dataset
 
-[BUSI (Breast Ultrasound Images)](https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset) —
+[BUSI (Breast Ultrasound Images)](https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset) -
 780 images from 600 patients, each with ground-truth lesion segmentation masks, across three
 classes: normal (133), benign (437), malignant (210).
 
