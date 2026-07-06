@@ -3,7 +3,7 @@
 ## Motivation
 
 AI methods for breast cancer detection are only clinically useful if they are both accurate
-and interpretable — a model that flags a scan as malignant without indicating why offers little
+and interpretable - a model that flags a scan as malignant without indicating why offers little
 to a radiologist deciding whether to trust it. This project builds a CNN classifier for breast
 ultrasound images and validates its explanations against radiologist-annotated lesion masks,
 as a small-scale demonstration of the fair/explainable AI approach central to breast imaging
@@ -45,14 +45,14 @@ Recall: of everything that actually was this class, what fraction the model caug
 F1 is the balance of the two. Support is how many true test examples of that class there were.)*
 
 Malignant precision is highest of the three classes (0.96), and critically, **no malignant
-case was misclassified as normal** — the model's errors on malignant cases were confusions
+case was misclassified as normal** - the model's errors on malignant cases were confusions
 with benign, the clinically safer failure mode. Most misclassifications involve normal images
 being read as benign, plausibly because "normal" tissue can still contain benign-looking
 structures not marked as lesions.
 
 ### Confusion matrix
 
-A confusion matrix is just a table of "what the model predicted" vs. "what was actually true" —
+A confusion matrix is just a table of "what the model predicted" vs. "what was actually true" -
 the diagonal is correct predictions, everything off the diagonal is a specific kind of mistake
 (e.g. row "malignant", column "benign" = a malignant case the model called benign).
 
@@ -64,7 +64,7 @@ predicted classes.
 ![Normalised confusion matrix](outputs/figures/baseline_confusion_matrix_normalized.png)
 
 This second version shows *only* the row percentages (0–1), which matters because the classes
-are imbalanced (133 normal vs. 437 benign vs. 210 malignant) — in the raw-count version, the
+are imbalanced (133 normal vs. 437 benign vs. 210 malignant) - in the raw-count version, the
 minority classes visually look "smaller" even when the model handles them just as well
 proportionally. Per class: normal 0.75, benign 0.95, malignant 0.84 correctly classified.
 
@@ -72,7 +72,7 @@ proportionally. Per class: normal 0.75, benign 0.95, malignant 0.84 correctly cl
 
 ![Per-class metrics](outputs/figures/baseline_class_metrics.png)
 
-The same numbers as the table above, as a bar chart — makes it easy to see at a glance that
+The same numbers as the table above, as a bar chart - makes it easy to see at a glance that
 malignant precision (how much to trust a "malignant" call) is the strongest of the three, while
 normal recall (catching every actual normal case) is the weakest.
 
@@ -88,7 +88,7 @@ summarises it as one number, where 1.0 is perfect and 0.5 is random.
 
 All three classes land well above chance: normal AUC=0.990, benign AUC=0.985,
 malignant AUC=0.994. This is a genuinely strong result and a useful complement to the accuracy
-figure above — it shows the model separates the classes well in terms of *ranking* predictions
+figure above - it shows the model separates the classes well in terms of *ranking* predictions
 by confidence, even where the default 0.5 decision threshold produces some misclassifications.
 In other words, several of the errors above are closer to a threshold-calibration issue than a
 fundamental inability to tell the classes apart.
@@ -102,11 +102,11 @@ is a real, visible gap by the final epoch: training loss falls to about 0.11 and
 accuracy to about 96%, while validation loss plateaus around 0.42-0.5 and validation accuracy
 around 85-87%, fluctuating noticeably epoch to epoch rather than improving smoothly. That gap is
 a mild sign of overfitting to the training set, and the noise in the validation curve is
-consistent with how small the validation split is (118 images) — a handful of hard or easy
+consistent with how small the validation split is (118 images) - a handful of hard or easy
 images swap prediction can move the epoch's validation accuracy several points either way. This
 is exactly why the *best-validation-accuracy* checkpoint was kept for testing rather than
 whatever the model looked like after the final epoch, and why the frozen-backbone (rather than
-fully fine-tuned) approach was the appropriate starting point for a dataset this size — even with
+fully fine-tuned) approach was the appropriate starting point for a dataset this size - even with
 that more conservative choice, some overfitting is still visible.
 
 ### Misclassified examples
@@ -115,7 +115,7 @@ that more conservative choice, some overfitting is still visible.
 
 Actual test images the model got wrong, with the true label, the model's (incorrect)
 prediction, and its confidence in that wrong prediction. This reveals a clean, consistent
-failure pattern: essentially every error here is a case being over-called "benign" — normal
+failure pattern: essentially every error here is a case being over-called "benign" - normal
 images read as benign, and the two malignant errors also misread as benign rather than normal.
 There's no case of being confidently wrong in the clinically dangerous direction (missing a
 real finding); the model's uncertainty consistently resolves toward the middle class rather
@@ -133,34 +133,34 @@ changing what the model outputs on average.
 Because the trained baseline model didn't originally include a dropout
 layer, this uses a fast **test-time dropout** variant: a dropout layer is
 wrapped around the *same already-trained* classification weights (dropout
-has no learnable parameters of its own, so nothing needed retraining — this
+has no learnable parameters of its own, so nothing needed retraining - this
 ran as a single inference pass, seconds not minutes). This is a quicker,
 more approximate cousin of "proper" MC-Dropout, where the network is trained
 from the start with dropout active so its weights adapt to be robust to it
-— worth being upfront about that distinction rather than overstating rigor.
+- worth being upfront about that distinction rather than overstating rigor.
 
 ![MC-Dropout uncertainty vs correctness](outputs/figures/baseline_mc_dropout_uncertainty.png)
 
 For each test image, the model was run 30 times with a different random
 dropout pattern each time, giving 30 slightly different predictions per
 image. **Predictive entropy** (how spread out the resulting average
-probability is across the three classes — 0 if every pass agreed on one
+probability is across the three classes - 0 if every pass agreed on one
 class, higher if they disagreed) is the uncertainty score plotted here.
 
 The result: mean entropy on **correct** predictions was **0.17**, vs. **0.71**
-on **incorrect** predictions — over 4x higher, with almost no overlap between
+on **incorrect** predictions - over 4x higher, with almost no overlap between
 the two groups. In plain terms: when this model is wrong, it also tends to
 be visibly less sure of itself, which is exactly the property you'd want to
 turn this into a practical triage signal ("route high-uncertainty cases to
 a human reviewer") rather than trusting every prediction equally. (Averaging
-predictions over the 30 stochastic passes gave 89.7% accuracy — consistent
+predictions over the 30 stochastic passes gave 89.7% accuracy - consistent
 with the original 88.9%, confirming the dropout noise isn't distorting the
 model's actual behaviour.)
 
 ### Grad-CAM: does the model look at the right place?
 
 Grad-CAM produces a heatmap of which pixels most influenced the model's decision. On its own
-that's just a picture — the useful step is comparing it against the radiologist's own drawn
+that's just a picture - the useful step is comparing it against the radiologist's own drawn
 lesion outline (the "ground-truth mask") for the same image, to check the model is keying off
 the actual lesion rather than something coincidental (a probe marker, image text, unrelated
 tissue).
@@ -172,8 +172,8 @@ tissue).
 Each row is one test image: the plain ultrasound image, the same image with the ground-truth
 lesion mask overlaid in red, and the Grad-CAM heatmap (red/yellow = high influence on the
 prediction, blue = low). Across benign and malignant examples, the heatmap reliably lands in
-the *general vicinity* of the annotated lesion — it is never concentrated on completely
-unrelated tissue, probe markers, or image text — but on closer inspection, the hottest part of
+the *general vicinity* of the annotated lesion - it is never concentrated on completely
+unrelated tissue, probe markers, or image text - but on closer inspection, the hottest part of
 the heatmap is frequently offset from the lesion rather than centred precisely on it, and the
 highlighted region is consistently larger than the lesion itself, spilling into surrounding
 tissue. So the honest characterisation is: the model is looking at broadly the right area, but
@@ -181,17 +181,17 @@ not drawing a precise boundary around the lesion the way the ground-truth mask d
 
 **Why this happens.** This is a known, structural limitation of Grad-CAM rather than a sign the
 model has learned something wrong. Grad-CAM is computed from the *last* convolutional block
-(`layer4`), which is where the network's class-relevant information is strongest — but by that
+(`layer4`), which is where the network's class-relevant information is strongest - but by that
 point in ResNet18, the image has been downsampled by a factor of 32 in total, so `layer4`'s
 output is only a 7×7 grid of activations (for a 224×224 input). That 7×7 map has to be
 upsampled back to the full image size to produce the heatmap, meaning each "pixel" of real
 precision in the raw Grad-CAM output actually corresponds to a 32×32 block of the original
-image — well larger than many of the lesions themselves. There is an inherent trade-off here:
+image - well larger than many of the lesions themselves. There is an inherent trade-off here:
 earlier layers have finer spatial resolution but weaker class-specific information; `layer4` has
 the strongest class information but the coarsest resolution. Grad-CAM is also influenced by each
 neuron's receptive field at that depth, which by `layer4` covers a large fraction of the image,
 so the heatmap reflects contextual tissue around the lesion, not only the lesion's exact pixels.
-This is a widely documented limitation, not specific to this project — it is the stated
+This is a widely documented limitation, not specific to this project - it is the stated
 motivation for follow-up work such as Grad-CAM++ (Chattopadhyay et al., 2018), which notes that
 "the feature map of the last convolutional layer has a smaller resolution compared to the input
 image, so Grad-CAM maps do not have fine-grained details."
@@ -203,7 +203,7 @@ from an earlier, higher-resolution layer at the cost of weaker class-specificity
 ## Discussion
 
 At under 800 training images, a lightweight transfer-learning approach (freezing most of a
-pretrained backbone) was appropriate — training a CNN from scratch on this dataset size would
+pretrained backbone) was appropriate - training a CNN from scratch on this dataset size would
 likely overfit. The Grad-CAM/mask agreement suggests the model's predictions are grounded in
 the correct anatomical region, which is the minimum bar for trusting a classifier's output in
 a clinical-adjacent setting, though it does not by itself establish clinical validity.
@@ -216,7 +216,7 @@ a clinical-adjacent setting, though it does not by itself establish clinical val
   such as CBIS-DDSM, given more compute and time.
 - **No formal fairness/subgroup evaluation.** BUSI does not include demographic metadata
   beyond patient age ranges, so no subgroup fairness analysis (e.g. by density, age, ethnicity)
-  was performed here — a natural next step for the "fair" half of fair/explainable AI.
+  was performed here - a natural next step for the "fair" half of fair/explainable AI.
 - **Small test set (117 images).** Class-wise metrics, especially for the minority "normal"
   class, carry meaningful uncertainty at this sample size.
 - **Grad-CAM overlap was assessed qualitatively**, not with a quantitative localisation metric
@@ -227,61 +227,51 @@ a clinical-adjacent setting, though it does not by itself establish clinical val
 
 **A two-stage cascade to directly target the worst error type, not just overall accuracy.**
 A single 3-way classifier has no concept that "a malignant or benign case predicted as
-normal" is a categorically worse mistake than confusing benign with malignant — it just
+normal" is a categorically worse mistake than confusing benign with malignant - it just
 optimises one accuracy number and treats every error the same. A cascade design addresses
 this directly: a first, binary normal-vs-abnormal stage, with its decision threshold
 deliberately tuned on a held-out validation split to catch every abnormal case (even at the
 cost of some normal images being flagged for a second look), followed by a second
 benign-vs-malignant stage that only ever runs on cases the first stage flagged. This mirrors
-how real screening pipelines are designed — a sensitive triage stage, then a specialist stage —
+how real screening pipelines are designed - a sensitive triage stage, then a specialist stage -
 rather than hoping the safety property falls out of a single global accuracy metric.
-
-This was in fact attempted, not just planned: an early implementation selected the
-triage threshold as the strict minimum abnormal-class probability seen in validation, which
-turned out to be a fragile statistic — a single noisy validation example collapsed the
-threshold to a value so low the model flagged almost every image as abnormal, which tanked
-overall accuracy without reliably fixing the error it was meant to prevent. The fix (a low
-percentile of validation scores instead of the strict minimum) was identified but not
-re-validated to completion within the time available, so no cascade result is reported here —
-the honest number to cite remains the single-model 88.9% above. Included as future work
-because the diagnosis, not just the idea, is what would make finishing it worthwhile.
 
 **PDE-based segmentation as a complementary, uncertainty-aware alternative to Grad-CAM.**
 This project's explainability approach (Grad-CAM) shows *which pixels* influenced a prediction,
 but says nothing about how confident that region's boundary actually is. Classical PDE and
 variational segmentation methods (level-set/Chan-Vese, active contours, total-variation
-regularisation — the kind of approach explored by researchers such as Jonas Latz, whose work
+regularisation - the kind of approach explored by researchers such as Jonas Latz, whose work
 spans exactly this intersection of PDEs, segmentation, and Bayesian uncertainty quantification)
-solve for a lesion boundary directly, and — when framed as a Bayesian inverse problem — can
+solve for a lesion boundary directly, and - when framed as a Bayesian inverse problem - can
 produce a *formal credible region* around that boundary, not just a point estimate. That is a
 genuinely different kind of uncertainty to the MC-Dropout classification uncertainty computed
 above: spatial ("how confident is the model in exactly where the lesion edge is") rather than
 categorical ("how confident is the model in which class this is"). The two are complementary,
 not competing.
 
-This would not be expected to beat the CNN on raw classification accuracy on its own — historically,
+This would not be expected to beat the CNN on raw classification accuracy on its own - historically,
 classical segmentation-plus-handcrafted-feature pipelines were broadly superseded by end-to-end
 deep learning for exactly this kind of task, since learned features tend to capture subtler
 discriminative texture than hand-designed geometric descriptors. The value case is different:
 interpretability and clinical auditability. A segmentation boundary and its uncertainty band are
 directly inspectable by a radiologist in a way a CNN's internal activations are not.
 
-*Update: this was followed up as a separate project —*
+*Update: this was followed up as a separate project -*
 [*breast-ultrasound-pde-segmentation*](https://github.com/fhawker89/breast-ultrasound-pde-segmentation)
-*— using Chan-Vese seeded from this model's own Grad-CAM output. The honest headline: the
+*- using Chan-Vese seeded from this model's own Grad-CAM output. The honest headline: the
 segmentation itself underperformed (mean Dice 0.25, or 0.43 even with perfect localisation
 handed to it), for a specific, diagnosable reason described in that repo's report. The
-motivating hypothesis fared much better — see the fractal dimension note below.*
+motivating hypothesis fared much better - see the fractal dimension note below.*
 
 **Fractal dimension as an interpretable feature.** There is an established body of evidence that
-malignant tissue exhibits measurably different fractal characteristics to benign tissue — in
-tumour boundary irregularity, texture, and (in histology) vascular branching patterns — plausibly
+malignant tissue exhibits measurably different fractal characteristics to benign tissue - in
+tumour boundary irregularity, texture, and (in histology) vascular branching patterns - plausibly
 because malignant growth tends to produce more irregular, self-similar structure than benign
 growth. Computing the fractal dimension (e.g. via box-counting) of each lesion's ground-truth
 mask boundary in this dataset, and checking whether it differs systematically between benign and
 malignant cases, would be a fast, no-retraining addition using data already collected for this
 project. Unlike a learned CNN feature, a fractal dimension is a single, human-interpretable
-number — a natural complement to Grad-CAM for building trust with a clinical end user, even if it
+number - a natural complement to Grad-CAM for building trust with a clinical end user, even if it
 is not expected to outperform the CNN's raw accuracy on its own.
 
 *Update: this was tested in the same follow-up project above, and it's the actual positive
@@ -289,6 +279,6 @@ result of that experiment. Computed on the ground-truth boundary, both fractal d
 circularity separate benign from malignant with real statistical significance (p=0.004 and
 p<0.0001), in the direction the "spiculated margins" literature predicts. Computed on the
 project's own (imprecise) automatic segmentation instead, the fractal dimension signal survives
-but weakens (p=0.039), and the circularity signal disappears entirely (p=0.41) — evidence that
+but weakens (p=0.039), and the circularity signal disappears entirely (p=0.41) - evidence that
 the underlying hypothesis is sound even though the automatic boundary-extraction step wasn't
 precise enough to reliably capture it.*
